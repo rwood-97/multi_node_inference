@@ -1,0 +1,10 @@
+# images
+*.sif
+
+# slurm logs
+*.log
+*.log.stats
+
+# cache
+*cache*
+

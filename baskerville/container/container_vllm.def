@@ -1,0 +1,28 @@
+Bootstrap: docker
+From: vllm/vllm-openai:v0.8.5
+
+%post
+    # Set non-interactive frontend for apt
+    # export DEBIAN_FRONTEND=noninteractive
+
+    # Install basics
+    # apt-get update && apt-get install -y \
+    #     wget git curl tzdata build-essential \
+    #     zlib1g-dev libffi-dev libbz2-dev liblzma-dev \
+    #     libreadline-dev libsqlite3-dev tk-dev uuid-dev \
+    #     libssl-dev libncurses5-dev libgdbm-dev libnss3-dev \
+    #     ca-certificates \
+    #     && rm -rf /var/lib/apt/lists/*
+
+    # Configure UK timezone
+    ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime
+    dpkg-reconfigure -f noninteractive tzdata
+
+%environment
+    export TZ=Europe/London
+    export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+    export PYTHONUNBUFFERED=1
+
+%runscript
+    exec bash
+
