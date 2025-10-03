@@ -1,0 +1,50 @@
+#!/bin/bash
+# vim: et:ts=4:sts=4:sw=4
+
+#SBATCH --qos turing
+#SBATCH --account usjs9456-ati-test
+#SBATCH --time 0:30:0
+#SBATCH --nodes 2
+#SBATCH --gpus-per-node 2
+#SBATCH --ntasks-per-node 2
+#SBATCH --job-name test_multi_node
+#SBATCH --output test_multi_node.log
+#SBATCH --constraint=a100_80
+
+echo "--------------------------------------"
+echo 
+echo 
+echo "New job: ${SLURM_JOB_ID}"
+echo "--------------------------------------"
+
+module purge
+module load baskerville
+module load Python NCCL
+
+export NCCL_SOCKET_IFNAME=ib0        # or the IB interface on Baskerville
+export NCCL_IB_DISABLE=0
+export NCCL_P2P_DISABLE=0
+export NCCL_IB_HCA=mlx5
+export NCCL_DEBUG=INFO               # optional, for debugging
+
+# for the python script
+export MASTER_PORT=$((16384 + $SLURM_JOB_ID % 16384))
+export MASTER_ADDR=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
+# for vllm run
+export PRIMARY_PORT=$MASTER_PORT
+export PRIMARY_HOST=$MASTER_ADDR
+#export PRIMARY_IP=$(getent hosts $PRIMARY_HOST | awk '{print $1}')
+export PRIMARY_IP=$(srun --nodes=1 --ntasks=1 -w $PRIMARY_HOST hostname -i | tr -d ' ')
+echo "Primary IP: $PRIMARY_IP"
+
+source ../venv_a100/bin/activate
+echo $(which python)
+
+# test nccl works
+srun -N2 -n4 --ntasks-per-node=2 bash -c "NCCL_DEBUG=VERSION python ./nccl_test.py"
+# run test.py
+NCCL_DEBUG=TRACE torchrun --nnodes 2 --nproc-per-node=2 --rdzv_backend=c10d --rdzv_endpoint=$MASTER_ADDR test.py
+
+wait
+
+
