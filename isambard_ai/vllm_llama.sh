@@ -70,7 +70,7 @@ if [[ "$SLURM_PROCID" -eq 0 ]]; then
     curl http://localhost:8000/v1/completions \
       -H "Content-Type: application/json" \
       -d '{
-        "model": "openai/gpt-iss-120b",
+        "model": "nvidia/Llama-3.3-70B-Instruct-FP8",
         "prompt": "The best flower for bees is",
         "max_tokens": 32,
         "temperature": 0
