@@ -4,13 +4,13 @@
 #SBATCH --qos turing
 #SBATCH --account usjs9456-ati-test
 #SBATCH --time 0:30:0
-#SBATCH --nodes 2
+#SBATCH --nodes 1 
 #SBATCH --gpus-per-node 4
 #SBATCH --cpus-per-gpu 36
-#SBATCH --mem 0
+#SBATCh --mem 0
 #SBATCH --ntasks-per-node 4
-#SBATCH --job-name test_multi_node
-#SBATCH --output test_multi_node.log
+#SBATCH --job-name one_node
+#SBATCH --output one_node.log
 #SBATCH --constraint=a100_80
 
 echo "--------------------------------------"
@@ -45,6 +45,6 @@ echo $(which python)
 # test nccl works
 srun -N${SLURM_NNODES} --ntasks-per-node=4 bash -c "NCCL_DEBUG=VERSION python ../nccl_test.py"
 # run vllm
-srun -N${SLURM_NNODES} -n${SLURM_NNODES} --ntasks-per-node=1 -l ./vllm_run.sh
+srun -N${SLURM_NNODES}  --ntasks-per-node=1 -l ./vllm_run.sh
 wait
 

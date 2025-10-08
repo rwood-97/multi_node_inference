@@ -6,6 +6,8 @@
 #SBATCH --time 0:30:0
 #SBATCH --nodes 2
 #SBATCH --gpus-per-node 4
+#SBATCH --cpus-per-gpu 36
+#SBATCH --mem 0
 #SBATCH --job-name test_multi_node_h100
 #SBATCH --output test_multi_node_h100.log
 #SBATCH --constraint=h100_80
@@ -22,7 +24,7 @@ echo "--------------------------------------"
 export APPTAINERENV_SLURM_NNODES=$SLURM_NNODES
 
 # for vllm run
-export PRIMARY_PORT=$((16384 + $SLURM_JOB_ID % 16384))
+export PRIMARY_PORT=$((30000 + $SLURM_JOB_ID % 16384))
 export PRIMARY_HOST=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
 export PRIMARY_IP=$(srun --nodes=1 --ntasks=1 -w $PRIMARY_HOST hostname -i | tr -d ' ')
 echo "Primary IP: $PRIMARY_IP"
