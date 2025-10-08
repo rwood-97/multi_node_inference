@@ -3,7 +3,9 @@
 /.singularity.d/runscript
 
 # adapt container for multi-node
-source /host/adapt.sh
+if [[ "$SLRUM_NNODES" -gt 1 ]]; then
+    source /host/adapt.sh
+fi
 
 source /py3.10-vllm/bin/activate
 echo $(which python)
@@ -46,7 +48,7 @@ sleep 20
 # only proc 0 runs ray status/list nodes
 if [[ "$SLURM_NODEID" -eq 0 && "$SLURM_PROCID" -eq 0 ]]; then
     ray status 
-    ray list nodes
+#    ray list nodes
 fi
 
 python -c "import torch; torch.cuda.is_available()"
@@ -58,7 +60,7 @@ echo
 if [[ "$SLURM_PROCID" -eq 0 ]]; then
     echo "Running vLLM benchmark..."
     vllm bench throughput \
-        --model Qwen/Qwen3-30B-A3B-Instruct-2507 \
+        --model Qwen/Qwen3-235B-A22B-Instruct-2507-FP8 \
         --input-len 512 \
         --output-len 1024 \
         -tp 4 -pp ${SLURM_NNODES} \

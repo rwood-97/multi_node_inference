@@ -3,7 +3,9 @@
 /.singularity.d/runscript
 
 # adapt container for multi-node
-source /host/adapt.sh
+if [[ "$SLRUM_NNODES" -gt 1 ]]; then
+    source /host/adapt.sh
+fi
 
 source /py3.10-vllm/bin/activate
 echo $(which python)
@@ -46,7 +48,7 @@ sleep 20
 # only proc 0 runs ray status/list nodes
 if [[ "$SLURM_NODEID" -eq 0 && "$SLURM_PROCID" -eq 0 ]]; then
     ray status 
-    ray list nodes
+#    ray list nodes
 fi
 
 python -c "import torch; torch.cuda.is_available()"
@@ -57,7 +59,7 @@ echo
 # only proc 0 runs vLLM benchmark
 if [[ "$SLURM_PROCID" -eq 0 ]]; then
     echo "Running vLLM..."
-    vllm serve nvidia/Llama-3.3-70B-Instruct-FP8 --tokenizer-mode auto --tensor-parallel-size 4 --pipeline-parallel-size 2 --config /isambard_ai/llama_config.yaml
+    vllm serve nvidia/Llama-3.3-70B-Instruct-FP8 --tokenizer-mode auto --tensor-parallel-size 4 --pipeline-parallel-size ${SLURM_NNODES} --config /isambard_ai/llama_config.yaml &
 
     # Wait for the REST API to be available
     until curl -s http://localhost:8000/v1/models >/dev/null 2>&1; do
@@ -69,7 +71,7 @@ if [[ "$SLURM_PROCID" -eq 0 ]]; then
       -H "Content-Type: application/json" \
       -d '{
         "model": "openai/gpt-iss-120b",
-        "prompt": "The best thing flower for bees is",
+        "prompt": "The best flower for bees is",
         "max_tokens": 32,
         "temperature": 0
     }'
