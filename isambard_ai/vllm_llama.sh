@@ -39,32 +39,27 @@ if [[ "$SLURM_NODEID" -eq 0 && "$SLURM_LOCALID" -eq 0 ]]; then
     ray start --head --node-ip-address $PRIMARY_IP --port $PRIMARY_PORT
 elif [[ "$SLURM_LOCALID" -eq 0 ]]; then
     echo "Starting Ray worker (proc $PROC_ID) connecting to $PRIMARY_IP:$PRIMARY_PORT"
-    ray start --address $PRIMARY_IP:$PRIMARY_PORT --node-ip-address $VLLM_HOST_IP
+    ray start --block --address $PRIMARY_IP:$PRIMARY_PORT --node-ip-address $VLLM_HOST_IP
+    echo "Woker (proc $PROC_ID) stopped"
 fi
 
 # sleep to ensure ray is set up
 sleep 20
-
-# only proc 0 runs ray status/list nodes
-if [[ "$SLURM_NODEID" -eq 0 && "$SLURM_PROCID" -eq 0 ]]; then
-    ray status 
-#    ray list nodes
-fi
-
-python -c "import torch; torch.cuda.is_available()"
 
 echo
 echo
 
 # only proc 0 runs vLLM benchmark
 if [[ "$SLURM_PROCID" -eq 0 ]]; then
+    ray status 
+
     echo "Running vLLM..."
     vllm serve nvidia/Llama-3.3-70B-Instruct-FP8 --tokenizer-mode auto --tensor-parallel-size 4 --pipeline-parallel-size ${SLURM_NNODES} --config /isambard_ai/llama_config.yaml &
 
     # Wait for the REST API to be available
     until curl -s http://localhost:8000/v1/models >/dev/null 2>&1; do
+        sleep 20
         echo "Waiting for vLLM to start..."
-        sleep 10
     done
 
     curl http://localhost:8000/v1/completions \
@@ -75,6 +70,10 @@ if [[ "$SLURM_PROCID" -eq 0 ]]; then
         "max_tokens": 32,
         "temperature": 0
     }'
+    
+    sleep 20
+    ray stop
+    echo "Done!"
 fi
 
 

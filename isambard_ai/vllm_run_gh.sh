@@ -13,7 +13,6 @@ echo $(which python)
 echo "Primary IP: $PRIMARY_IP"
 
 export HF_HOME=/hf_home/
-export NCCL_SOCKET_IFNAME="${NETWORK_INTERFACE}"
 
 # get this node’s ip
 NODE_IP=$(hostname -i)
