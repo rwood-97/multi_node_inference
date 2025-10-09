@@ -17,17 +17,13 @@ echo
 echo "New job: ${SLURM_JOB_ID}"
 echo "--------------------------------------"
 
-export APPTAINERENV_SLURM_NNODES=$SLURM_NNODES
-# export APPTAINERENV_SLURM_PROCID=$SLURM_PROCID
-# export APPTAINERENV_SLURM_LOCALID=$SLURM_LOCALID
-# export APPTAINERENV_SLURM_NODEID=$SLURM_NODEID
-
 # for vllm run
-export PRIMARY_PORT=$((16384 + $SLURM_JOB_ID % 16384))
+export PRIMARY_PORT=$((30000 + $SLURM_JOB_ID % 16384))
 export PRIMARY_HOST=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
 export PRIMARY_IP=$(srun --nodes=1 --ntasks=1 -w $PRIMARY_HOST hostname -i | tr -d ' ')
 echo "Primary IP: $PRIMARY_IP"
 
+# export apptainer env variables
 export APPTAINERENV_PRIMARY_PORT=$PRIMARY_PORT
 export APPTAINERENV_PRIMARY_IP=$PRIMARY_IP
 
