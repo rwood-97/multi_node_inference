@@ -45,14 +45,20 @@ echo
 if [[ "$SLURM_PROCID" -eq 0 ]]; then
     ray status 
     
-    echo "Running vLLM benchmark..."
-    vllm bench throughput \
-        --model Qwen/Qwen3-235B-A22B-Instruct-2507-FP8 \
-        --input-len 512 \
-        --output-len 1024 \
-        -tp 4 -pp ${SLURM_NNODES} \
-        --distributed-executor-backend ray
-    ray stop
+    echo "Running vLLM..."
+    vllm serve Qwen/Qwen3-235B-A22B-Instruct-2507-FP8 \
+	--tokenizer-mode auto 
+        --tensor-parallel-size 4 
+	--pipeline-parallel-size ${SLURM_NNODES} 
+	--port 8765 &
+
+    # Wait for the REST API to be available
+    until curl -s http://localhost:8765/v1/models >/dev/null 2>&1; do
+        sleep 20
+        echo "Waiting for vLLM to start..."
+    done
+
+    sleep 1800
     echo "Done!"
 fi
 
