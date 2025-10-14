@@ -47,9 +47,9 @@ if [[ "$SLURM_PROCID" -eq 0 ]]; then
     
     echo "Running vLLM..."
     vllm serve Qwen/Qwen3-235B-A22B-Instruct-2507-FP8 \
-	--tokenizer-mode auto 
-        --tensor-parallel-size 4 
-	--pipeline-parallel-size ${SLURM_NNODES} 
+	--tokenizer-mode auto \
+        --tensor-parallel-size 4 \
+	--pipeline-parallel-size ${SLURM_NNODES} \
 	--port 8765 &
 
     # Wait for the REST API to be available

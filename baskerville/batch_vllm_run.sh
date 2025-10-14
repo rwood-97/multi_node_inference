@@ -3,7 +3,7 @@
 
 #SBATCH --qos turing
 #SBATCH --account usjs9456-ati-test
-#SBATCH --time 0:30:0
+#SBATCH --time 1:00:0
 #SBATCH --nodes 2
 #SBATCH --gpus-per-node 4
 #SBATCH --cpus-per-gpu 36
