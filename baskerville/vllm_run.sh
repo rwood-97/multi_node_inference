@@ -41,11 +41,10 @@ if [[ "$SLURM_PROCID" -eq 0 ]]; then
     vllm serve Qwen/Qwen3-30B-A3B-Instruct-2507 \
 	--tokenizer-mode auto \
         -tp 4 -pp ${SLURM_NNODES} \
-	--port 8765 \
 	--distributed-executor-backend ray &
 
     # Wait for the REST API to be available
-    until curl -s http://localhost:8765/v1/models >/dev/null 2>&1; do
+    until curl -s http://localhost:8000/v1/models >/dev/null 2>&1; do
         sleep 20
         echo "Waiting for vLLM to start..."
     done
