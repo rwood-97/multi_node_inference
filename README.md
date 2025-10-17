@@ -39,8 +39,6 @@ For the venv, you will need to:
 
 ### H100 nodes
 
-**NOTE: These don't work at present!**
-
 The scripts for the H100 nodes are:
 - `batch_vllm_run_h100.sh`
 - `vllm_run_h100.sh`
