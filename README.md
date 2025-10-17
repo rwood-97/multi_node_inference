@@ -3,8 +3,12 @@
 This repository contains example scripts for running multi-node inference with vLLM on HPCs (Baskerville A100 GPUs and H100 GPUs and Isambard-AI GH200 chips with H100 GPUs).
 
 The models used are:
+- [Qwen/Qwen3-235B-A22B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507)
 - [Qwen/Qwen3-235B-A22B-Instruct-2507-FP8](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507-FP8)
 - [Qwen/Qwen3-30B-A3B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-30B-A3B-Instruct-2507)
+- [nvidia/Llama-3.3-70B-Instruct-FP8](https://huggingface.co/nvidia/Llama-3.3-70B-Instruct-FP8)
+
+It also contains instructions and a small script for running a frontend using Open WebUI to interact with your model.
 
 ## Baskerville
 
@@ -70,6 +74,12 @@ Additionally, there are some scripts for running [Llama-3.3-70B-Instruct-FP8](ht
 All the above scripts use the `e4s-cuda90-aarch64-25.06.4.sif` container.
 This is a pre-built container image which is accessible on the Isambard-AI filesystem at `/projects/public/brics/containers/e4s/cuda90-aarch64-25.06.4.sif`.
 You will need to copy or symlink this image into to the `container` directory before running the scripts.
+
+## Hosting a frontend
+
+The `frontend` directory contains instructions and a script for hosting a frontend using Open WebUI to interact with your model.
+
+Go to the `frontend/README.md` for more information.
 
 ## Refs
 
