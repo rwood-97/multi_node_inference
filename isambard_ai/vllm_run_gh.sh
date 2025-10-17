@@ -46,9 +46,9 @@ if [[ "$SLURM_PROCID" -eq 0 ]]; then
     ray status 
 
     if [[ "$SLURM_NNODES" -eq 1 ]]; then
-        MODEL = "Qwen/Qwen3-30B-A3B-Instruct-2507"
+        MODEL="Qwen/Qwen3-30B-A3B-Instruct-2507"
     else
-        MODEL = "Qwen/Qwen3-235B-A22B-Instruct-2507-FP8"
+        MODEL="Qwen/Qwen3-235B-A22B-Instruct-2507-FP8"
     fi
     
     echo "Running ${MODEL} with vLLM..."
