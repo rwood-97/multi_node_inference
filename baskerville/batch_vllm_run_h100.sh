@@ -21,7 +21,6 @@ echo
 echo "New job: ${SLURM_JOB_ID}"
 echo "--------------------------------------"
 
-export APPTAINERENV_SLURM_NNODES=$SLURM_NNODES
 
 # for vllm run
 export PRIMARY_PORT=$((30000 + $SLURM_JOB_ID % 16384))
@@ -32,6 +31,6 @@ echo "Primary IP: $PRIMARY_IP"
 export APPTAINERENV_PRIMARY_PORT=$PRIMARY_PORT
 export APPTAINERENV_PRIMARY_IP=$PRIMARY_IP
 
-srun -n2 apptainer exec --nv --bind ${PWD}:/baskerville,/scratch-global/slurm-jobs/rwood/:/scratch,${HF_HOME}:/hf_home container/container_vllm.sif /baskerville/vllm_run_h100.sh
+srun -N${SLURM_NNODES} -n${SLURM_NNODES} -l apptainer exec --nv --bind ${PWD}:/baskerville,/scratch-global/slurm-jobs/rwood/:/scratch,${HF_HOME}:/hf_home container/container_vllm.sif /baskerville/vllm_run_h100.sh
 wait
 
