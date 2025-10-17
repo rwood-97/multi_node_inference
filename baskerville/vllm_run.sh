@@ -46,7 +46,7 @@ if [[ "$SLURM_PROCID" -eq 0 ]]; then
     echo "Running ${MODEL} with vLLM..."
     vllm serve $MODEL \
 	--tokenizer-mode auto \
-        -tp 4 -pp ${SLURM_NNODES} \
+    -tp 4 -pp ${SLURM_NNODES} \
 	--distributed-executor-backend ray &
 
     # Wait for the REST API to be available

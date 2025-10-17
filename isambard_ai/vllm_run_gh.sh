@@ -54,7 +54,7 @@ if [[ "$SLURM_PROCID" -eq 0 ]]; then
     echo "Running ${MODEL} with vLLM..."
     vllm serve $MODEL \
 	--tokenizer-mode auto \
-        --tensor-parallel-size 4 \
+    --tensor-parallel-size 4 \
 	--pipeline-parallel-size ${SLURM_NNODES}
 
     # Wait for the REST API to be available
