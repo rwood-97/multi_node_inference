@@ -1,26 +1,8 @@
 import os
 import time
 import ray
-from ray.util.scheduling_strategies import PlacementGroupSchedulingStrategy
 
-from vllm import LLM, EngineArgs
-
-# For tensor and pipeline parrallelism we need to create placement groups for vLLM.
-# Every actor has to have its own placement group.
-def scheduling_strategy_fn(tp=int, pp=int):
-    pg = ray.util.placement_group(
-        [{
-            "GPU": 1,
-            "CPU": 1
-        }] * tp*pp,
-        strategy="STRICT_PACK",
-    )
-    return dict(
-        scheduling_strategy=PlacementGroupSchedulingStrategy(
-            pg, 
-            placement_group_capture_child_tasks=True
-        )
-    )
+from vllm import LLM
 
 def main():
     """
@@ -48,9 +30,6 @@ def main():
         # tensor and pipeline parallelism
         tp=4
         pp=nnodes
-        
-        # Define scheduling strategy fn
-        ss = scheduling_strategy_fn(tp=tp, pp=pp)
 
         # Initialize the LLM engine
         # This will now correctly create the placement group across the full Ray cluster
@@ -62,10 +41,9 @@ def main():
         )
 
         prompts = [
-            "Hello, my name is",
-            "The president of the United States is",
-            "The capital of France is",
-            "The future of AI is",
+            "Give me a short introduction to garden flowers.",
+            "The best flower for bees is",
+            "Gardening jobs for October include",
         ]
         
         print("\nStarting generation...")

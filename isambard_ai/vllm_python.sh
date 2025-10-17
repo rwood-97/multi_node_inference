@@ -45,26 +45,13 @@ fi
 # sleep to ensure ray is set up
 sleep 20
 
-# only proc 0 runs ray status/list nodes
-if [[ "$SLURM_NODEID" -eq 0 && "$SLURM_PROCID" -eq 0 ]]; then
-    ray status 
-    # ray list nodes
-fi
-
-echo
-echo
-
 # only proc 0 runs vLLM benchmark
 if [[ "$SLURM_PROCID" -eq 0 ]]; then
+    ray status 
+
     echo "Running vLLM benchmark..."
     python /isambard_ai/ray_test.py
     python /isambard_ai/run_vllm.py
-#    CUDA_VISIBLE_DEVICES= vllm bench throughput \
-#        --model Qwen/Qwen3-30B-A3B-Instruct-2507 \
-#        --input-len 512 \
-#        --output-len 1024 \
-#        -tp 4 -pp 2 \
-#        --distributed-executor-backend ray
 fi
 
 

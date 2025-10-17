@@ -30,8 +30,6 @@ echo "Primary IP: $PRIMARY_IP"
 export APPTAINERENV_PRIMARY_PORT=$PRIMARY_PORT
 export APPTAINERENV_PRIMARY_IP=$PRIMARY_IP
 
-echo "WARNING! This code is likely to crash unless you change the model in vllm_run_gh.sh"
-
 srun -N${SLURM_NNODES} -n${SLURM_NNODES} -l apptainer exec --nv --bind ${PWD}:/isambard_ai,${SCRATCH}:/scratch,${HF_HOME}:/hf_home container/e4s-cuda90-aarch64-25.06.4.sif /isambard_ai/vllm_run_gh.sh
 wait
 

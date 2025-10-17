@@ -18,9 +18,6 @@ echo "New job: ${SLURM_JOB_ID}"
 echo "--------------------------------------"
 
 export APPTAINERENV_SLURM_NNODES=$SLURM_NNODES
-# export APPTAINERENV_SLURM_PROCID=$SLURM_PROCID
-# export APPTAINERENV_SLURM_LOCALID=$SLURM_LOCALID
-# export APPTAINERENV_SLURM_NODEID=$SLURM_NODEID
 
 # for vllm run
 export PRIMARY_PORT=$((16384 + $SLURM_JOB_ID % 16384))

@@ -53,7 +53,7 @@ echo
 if [[ "$SLURM_PROCID" -eq 0 ]]; then
     ray status 
 
-    echo "Running vLLM..."
+    echo "Running nvidia/Llama-3.3-70B-Instruct-FP8 with vLLM..."
     vllm serve nvidia/Llama-3.3-70B-Instruct-FP8 --tokenizer-mode auto --tensor-parallel-size 4 --pipeline-parallel-size ${SLURM_NNODES} --config /isambard_ai/llama_config.yaml &
 
     # Wait for the REST API to be available

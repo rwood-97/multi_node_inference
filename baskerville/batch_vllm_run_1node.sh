@@ -23,11 +23,10 @@ module purge
 module load baskerville
 module load Python NCCL
 
-export NCCL_SOCKET_IFNAME=ib0        # or the IB interface on Baskerville
+export NCCL_SOCKET_IFNAME=ib0
 export NCCL_IB_DISABLE=0
 export NCCL_P2P_DISABLE=0
 export NCCL_IB_HCA=mlx5
-export NCCL_DEBUG=INFO               # optional, for debugging
 
 # for the python script
 export MASTER_PORT=$((30000 + $SLURM_JOB_ID % 16384))

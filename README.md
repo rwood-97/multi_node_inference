@@ -3,8 +3,7 @@
 This repository contains example scripts for running multi-node inference with vLLM on HPCs (Baskerville A100 GPUs and H100 GPUs and Isambard-AI GH200 chips with H100 GPUs).
 
 The models used are:
-- [Qwen/Qwen3-235B-A22B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507)
-- [Qwen/Qwen3-235B-A22B-Instruct-2507-FP8](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507-FP8)
+- [Qwen/Qwen3-235B-A22B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507) 
 - [Qwen/Qwen3-30B-A3B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-30B-A3B-Instruct-2507)
 - [nvidia/Llama-3.3-70B-Instruct-FP8](https://huggingface.co/nvidia/Llama-3.3-70B-Instruct-FP8)
 
@@ -80,6 +79,10 @@ You will need to copy or symlink this image into to the `container` directory be
 The `frontend` directory contains instructions and a script for hosting a frontend using Open WebUI to interact with your model.
 
 Go to the `frontend/README.md` for more information.
+
+## `qwen.py` and `qwen_chat.py`
+
+The `qwen.py` and `qwen_chat.py` scripts are simple examples of how to use transformers to load and run Qwen. 
 
 ## Refs
 

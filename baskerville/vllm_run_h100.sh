@@ -4,11 +4,10 @@ export HF_HOME=/hf_home/
 
 echo $(which python)
 
-export NCCL_SOCKET_IFNAME=ib0        # or the IB interface on Baskerville
+export NCCL_SOCKET_IFNAME=ib0
 export NCCL_IB_DISABLE=0
 export NCCL_P2P_DISABLE=0
 export NCCL_IB_HCA=mlx5
-export NCCL_DEBUG=INFO               # optional, for debugging
 
 echo "Primary IP: $PRIMARY_IP"
 
@@ -39,20 +38,19 @@ fi
 # sleep to ensure ray is set up
 sleep 20
 
-# only proc 0 runs ray status/list nodes
-if [[ "$SLURM_NODEID" -eq 0 && "$SLURM_PROCID" -eq 0 ]]; then
-    ray status 
-    ray list nodes
-fi
-
-echo
-echo
-
 # only proc 0 runs vLLM benchmark
 if [[ "$SLURM_PROCID" -eq 0 ]]; then
-    echo "Running vLLM benchmark..."
+    ray status 
+
+    if [[ "$SLURM_NNODES" -eq 1 ]]; then
+        MODEL = "Qwen/Qwen3-30B-A3B-Instruct-2507"
+    else
+        MODEL = "Qwen/Qwen3-235B-A22B-Instruct-2507"
+    fi
+
+    echo "Running ${MODEL} with vLLM..."
     vllm bench throughput \
-        --model Qwen/Qwen3-30B-A3B-Instruct-2507 \
+        --model $MODEL \
         --input-len 512 \
         --output-len 1024 \
         -tp 4 -pp ${SLURM_NNODES} \

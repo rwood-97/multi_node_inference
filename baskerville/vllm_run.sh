@@ -37,8 +37,14 @@ if [[ "$SLURM_PROCID" -eq 0 ]]; then
     ray status
     ray list nodes
 	
-    echo "Running vLLM..."
-    vllm serve Qwen/Qwen3-30B-A3B-Instruct-2507 \
+    if [[ "$SLURM_NNODES" -eq 1 ]]; then
+        MODEL = "Qwen/Qwen3-30B-A3B-Instruct-2507"
+    else
+        MODEL = "Qwen/Qwen3-235B-A22B-Instruct-2507"
+    fi
+
+    echo "Running ${MODEL} with vLLM..."
+    vllm serve $MODEL \
 	--tokenizer-mode auto \
         -tp 4 -pp ${SLURM_NNODES} \
 	--distributed-executor-backend ray &
