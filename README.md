@@ -29,7 +29,7 @@ The scripts for the A100 nodes are:
 - `vllm_run.sh`
 
 These scripts use the Python (3.11.3) and NCCL (2.20.5 + CUDA 12.3) modules.
-They also use a venv located at `../venv_a100/`.
+They also use a venv located at `../../venv_a100/`.
 
 For the venv, you will need to:
 - Use `srun` to get onto an A100 node
@@ -61,9 +61,11 @@ The scripts for Isambard-AI are:
 - `batch_vllm_run_gh_1node.sh`
 - `vllm_run_gh.sh`
 
-Additionally, there are some scripts for running [Llama-3.3-70B-Instruct-FP8](https://huggingface.co/nvidia/Llama-3.3-70B-Instruct-FP8) and for running vLLM using python (rather than command line):
+Additionally, there are some scripts for running [Llama-3.3-70B-Instruct-FP8](https://huggingface.co/nvidia/Llama-3.3-70B-Instruct-FP8) in `llama3.3` folder: 
 - `batch_vllm_llama.sh`
 - `vllm_llama.sh`
+
+And for running vLLM using python (rather than command line) in the `vllm_python` folder:
 - `batch_vllm_python.sh`
 - `vllm_python.sh`
 - `run_vllm.py`
@@ -80,7 +82,7 @@ Go to the `frontend/README.md` for more information.
 
 ## `qwen.py` and `qwen_chat.py`
 
-The `qwen.py` and `qwen_chat.py` scripts are simple examples of how to use transformers to load and run Qwen. 
+The `qwen.py` and `qwen_chat.py` scripts are simple examples of how to use transformers to load and run the Qwen3-225B model.
 
 ## Refs
 
