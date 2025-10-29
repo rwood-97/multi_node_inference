@@ -1,9 +1,21 @@
 #!/bin/bash
 
-source ../venv_a100/bin/activate
+/.singularity.d/runscript
+
+# adapt container for multi-node
+source /host/adapt.sh
+
+source /py3.10-vllm/bin/activate
 echo $(which python)
+vllm --version
 
 echo "Primary IP: $PRIMARY_IP"
+echo $SLURM_NNODES
+echo $SLURM_PROCID
+echo $SLURM_LOCALID
+echo $SLURM_NODEID
+
+export HF_HOME=/hf_home/
 
 # get this node’s hostname
 NODE_HOST=$(hostname -s)
@@ -25,8 +37,9 @@ if [[ "$SLURM_NODEID" -eq 0 && "$SLURM_LOCALID" -eq 0 ]]; then
     echo "Starting Ray head on $PRIMARY_IP:$PRIMARY_PORT"
     ray start --head --node-ip-address $PRIMARY_IP --port $PRIMARY_PORT
 elif [[ "$SLURM_LOCALID" -eq 0 ]]; then
+    sleep 10
     echo "Starting Ray worker (proc $PROC_ID) connecting to $PRIMARY_IP:$PRIMARY_PORT"
-    ray start --block --address $PRIMARY_IP:$PRIMARY_PORT --node-ip-address $VLLM_HOST_IP
+    ray start --block --address $PRIMARY_IP:$PRIMARY_PORT --node-ip-address $VLLM_HOST_IP # this process is blocking i.e. nothing below will run
 fi
 
 # sleep to ensure ray is set up
@@ -34,29 +47,11 @@ sleep 20
 
 # only proc 0 runs vLLM benchmark
 if [[ "$SLURM_PROCID" -eq 0 ]]; then
-    ray status
-    ray list nodes
-	
-    if [[ "$SLURM_NNODES" -eq 1 ]]; then
-        MODEL="Qwen/Qwen3-30B-A3B-Instruct-2507"
-    else
-        MODEL="Qwen/Qwen3-235B-A22B-Instruct-2507"
-    fi
+    ray status 
 
-    echo "Running ${MODEL} with vLLM..."
-    vllm serve $MODEL \
-	--tokenizer-mode auto \
-    -tp 4 -pp ${SLURM_NNODES} \
-	--distributed-executor-backend ray &
-
-    # Wait for the REST API to be available
-    until curl -s http://localhost:8000/v1/models >/dev/null 2>&1; do
-        sleep 20
-        echo "Waiting for vLLM to start..."
-    done
-
-    sleep 3000
-    echo "Done!"
+    echo "Running vLLM benchmark..."
+    python /vllm_python/ray_test.py
+    python /vllm_python/run_vllm.py
 fi
 
 

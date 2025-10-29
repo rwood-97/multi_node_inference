@@ -3,14 +3,14 @@
 
 #SBATCH --qos turing
 #SBATCH --account usjs9456-ati-test
-#SBATCH --time 1:00:0
-#SBATCH --nodes 2
+#SBATCH --time 0:30:0
+#SBATCH --nodes 1 
 #SBATCH --gpus-per-node 4
 #SBATCH --cpus-per-gpu 36
-#SBATCH --mem 0
+#SBATCh --mem 0
 #SBATCH --ntasks-per-node 4
-#SBATCH --job-name test_multi_node
-#SBATCH --output test_multi_node.log
+#SBATCH --job-name one_node
+#SBATCH --output one_node.log
 #SBATCH --constraint=a100_80
 
 echo "--------------------------------------"
@@ -38,12 +38,12 @@ export PRIMARY_HOST=$MASTER_ADDR
 export PRIMARY_IP=$(srun --nodes=1 --ntasks=1 -w $PRIMARY_HOST hostname -i | tr -d ' ')
 echo "Primary IP: $PRIMARY_IP"
 
-source ../venv_a100/bin/activate
+source ../../venv_a100/bin/activate
 echo $(which python)
 
 # test nccl works
-srun -N${SLURM_NNODES} --ntasks-per-node=4 bash -c "NCCL_DEBUG=VERSION python ../nccl_test.py"
+srun -N${SLURM_NNODES} --ntasks-per-node=4 bash -c "NCCL_DEBUG=VERSION python ./nccl_test.py"
 # run vllm
-srun -N${SLURM_NNODES} -n${SLURM_NNODES} --ntasks-per-node=1 -l ./vllm_run.sh
+srun -N${SLURM_NNODES}  --ntasks-per-node=1 -l ./vllm_run.sh
 wait
 

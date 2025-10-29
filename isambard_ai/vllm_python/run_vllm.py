@@ -21,7 +21,7 @@ def main():
         print(f"Current cluster size: {len(ray.nodes())}/{nnodes}. Waiting...")
         time.sleep(5)
 
-# Only the head node (rank 0) will initialize and run the vLLM engine.
+    # Only the head node (rank 0) will initialize and run the vLLM engine.
     if rank == 0:
         print("\n" + "="*40)
         print("Head node is initializing the vLLM Engine.")
