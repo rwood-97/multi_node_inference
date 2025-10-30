@@ -8,7 +8,20 @@ The models used are:
 - [Qwen/Qwen3-30B-A3B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-30B-A3B-Instruct-2507)
 - [nvidia/Llama-3.3-70B-Instruct-FP8](https://huggingface.co/nvidia/Llama-3.3-70B-Instruct-FP8)
 
-## Baskerville
+## Table of Contents
+
+- [Baskerville overview](#baskerville-overview)
+- [Isambard-AI overview](#isambard-ai-overview)
+- [vLLM scripts](#vllm-scripts)
+    - [Baskerville](#baskerville)
+    - [Isambard-AI](#isambard-ai)
+    - [Hosting a frontend](#hosting-a-frontend)
+- [transformers scripts](#transformers-scripts)
+    - [Baskerville](#baskerville-1)
+    - [Isambard-AI](#isambard-ai-1)
+- [Refs](#refs)
+
+## Baskerville overview
 
 The Baskerville system is made up of 48 nodes with A100 GPUs, 37 of which have 40GB vRAM and 11 of which have 80GB vRAM. 
 There are also 2 nodes with H100 GPUs, each with 80GB vRAM. 
@@ -18,7 +31,7 @@ More information can be found [here](https://docs.baskerville.ac.uk/system/).
 Baskerville's A100 nodes primarily use modules to manage software environments, loaded via `module load <module_name>`. This includes thing like Python, CUDA, NCCL, etc.
 In contrast, the H100 nodes require users to install their own software and so are more suited to containerised workflows.
 
-## Isambard-AI
+## Isambard-AI overview
 
 The Isambard-AI (Phase 2) system is made up of 1320 nodes with GH200 chips. Each GH200 chip has 1 Grace CPU and 1 H100 GPU. There are 4 GH200 chips per node and 72 cores per GPU. 
 Each H100 GPU has 80GB vRAM. 
@@ -59,15 +72,19 @@ The scripts for the H100 nodes are:
 - `vllm_run_h100.sh`
 
 These scripts use a container defined by the `container/container_vllm.def` file.
-You will need to build the container yourself, to do this:
+You will need to build the container yourself. 
+To do this:
 - Use the following command to launch an interactive job on an H100 node (replace `xxxx` with your project code): 
 ```bash 
 srun --constraint h100_80 --qos turing --account xxxx --time 2:00:0 --nodes 1 --gpus-per-node 1 --cpus-per-gpu 36 --mem 0 --pty /bin/bash
 ```
+- `cd` to the `vllm_examples/baskerville/h100` directory
 - Build the container with the following command:
 ``` bash
-apptainer build container_vllm.sif container/container_vllm.def
+apptainer build container/container_vllm.sif container/container_vllm.def
 ``` 
+
+Once the container is built, you can exit your interactive job (by typing `exit`).
 
 Then, to run the script, use:
 
@@ -96,13 +113,16 @@ This is a pre-built container image which is accessible on the Isambard-AI files
 
 You will need to copy or symlink this image into to a `container` directory before running the scripts. 
 
-To do this, create the `container` directory if it does not already exist using `mkdir container`, then run the following command:
+To do this:
+- `cd` to the `vllm_examples/isambard_ai` directory (or the relevant sub-directory for the other examples)
+- Create the `container` directory if it does not already exist (using `mkdir container`)
+- Run the following command to create a symlink to the container image:
 
 ``` bash
 ln -s /projects/public/brics/containers/e4s/cuda90-aarch64-25.06.4.sif container/e4s-cuda90-aarch64-25.06.4.sif
 ```
 
-Then, to run the scripts, use:
+Once this is done, you can run the scripts using:
 
 ``` bash
 sbatch batch_vllm_run_gh.sh
@@ -134,13 +154,17 @@ The two options for running these scripts are via an interactive job (both for `
 
 ### Baskerville
 
-To launch an interactive job, run the following command (replace `xxxx` with your project code):
+#### Interactive job (srun)
+
+On Baskerville, to launch an interactive job run the following command (replace `xxxx` with your project code):
 
 ```bash
 srun --qos turing --account xxxx --time 0:30:0 --nodes 1 --gpus-per-node 4 --cpus-per-gpu 36 --mem 0 --pty /bin/bash
 ```
 
-Once your job is allocated resources, you can run the `run_local.sh` script to run `qwen.py` or the `run_chat_local.py` script to run `qwen_chat.py` and chat with the model.
+Once your job is allocated resources, you can either run the `run_local.sh` script to run `qwen.py` or the `run_chat_local.py` script to run `qwen_chat.py` and chat with the model.
+
+#### Batch job (sbatch)
 
 Alternatively, to run the `qwen.py` script as a batch job, you can use the `batch_run_local.sh` script:
 
@@ -158,17 +182,28 @@ You will need to build the container yourself, to do this:
 ```bash 
 srun --time=0:30:0 --nodes=1 --gpus-per-node 1 --cpus-per-node 72 --mem=0 --pty /bin/bash
 ```
+- `cd` to the `transformers_examples/isambard_ai` directory
 - Build the container with the following command:
 ``` bash
-apptainer build container.sif container/container.def
+apptainer build container/container.sif container/container.def
 ``` 
 
+#### Interactive job (srun)
+
 Once the container is built, you can run the `run_apptainer.sh` script to start the it.
+
+**If you are following from the above, continue in the same interactive job**. Otherwise launch a new interactive job with:
+
+```bash
+srun --time=0:30:0 --nodes=1 --gpus-per-node 1 --cpus-per-node 72 --mem=0 --pty /bin/bash
+```
+
+Then run the `run_apptainer.sh` script.
 This will drop you into a shell inside the container from which you can run the `qwen.py` or `qwen_chat.py` scripts.
 
 Before running either script, you will need to set the `HF_HOME` environment variable to `/hf_home` and `cd` to the `transformers_examples` directory:
 ```bash
-export $HF_HOME=/hf_home
+export HF_HOME=/hf_home
 cd /transformers_examples
 ```
 
@@ -178,6 +213,8 @@ python qwen_chat.py
 ```
 
 (or `python qwen.py` to run the other script).
+
+#### Batch job (sbatch)
 
 Alternatively, to use a batch job you can run the `batch_run_apptainer.sh` script:
 
