@@ -38,8 +38,11 @@ export PRIMARY_HOST=$MASTER_ADDR
 export PRIMARY_IP=$(srun --nodes=1 --ntasks=1 -w $PRIMARY_HOST hostname -i | tr -d ' ')
 echo "Primary IP: $PRIMARY_IP"
 
-source ../../venv_a100/bin/activate
+python -m venv venv_a100
+source venv_a100/bin/activate
 echo $(which python)
+
+python -m pip install -r requirements.txt
 
 # test nccl works
 srun -N${SLURM_NNODES} --ntasks-per-node=4 bash -c "NCCL_DEBUG=VERSION python ./nccl_test.py"

@@ -1,0 +1,1 @@
+apptainer run --nv --bind ${PWD}/../:/transformers_examples,$HF_HOME:/hf_home container/e4s-cuda90-aarch64-25.06.4.sif

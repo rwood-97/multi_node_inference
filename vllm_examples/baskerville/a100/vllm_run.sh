@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ../../venv_a100/bin/activate
+source venv_a100/bin/activate
 echo $(which python)
 
 echo "Primary IP: $PRIMARY_IP"

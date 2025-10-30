@@ -1,0 +1,16 @@
+Bootstrap: docker
+From: vllm/vllm-openai:v0.8.5
+
+%post
+    # Configure UK timezone
+    ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime
+    dpkg-reconfigure -f noninteractive tzdata
+
+%environment
+    export TZ=Europe/London
+    export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+    export PYTHONUNBUFFERED=1
+
+%runscript
+    exec bash
+
