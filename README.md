@@ -45,7 +45,8 @@ Scripts for running multi-node inference with vLLM are in the `vllm_examples` di
 
 #### A100 nodes
 
-The scripts for the A100 nodes are:
+The scripts for the A100 nodes are found in the `vllm_examples/baskerville/a100` directory.
+They are:
 - `batch_vllm_run.sh`
 - `batch_vllm_run_1node.sh`
 - `vllm_run.sh`
@@ -67,7 +68,8 @@ sbatch batch_vllm_run_1node.sh
 
 #### H100 nodes
 
-The scripts for the H100 nodes are:
+The scripts for the H100 nodes are found in the `vllm_examples/baskerville/h100` directory.
+They are:
 - `batch_vllm_run_h100.sh`
 - `vllm_run_h100.sh`
 
@@ -94,16 +96,17 @@ sbatch batch_vllm_run_h100.sh
 
 ### Isambard-AI
 
-The scripts for Isambard-AI are:
+The scripts for Isambard-AI are found in the `vllm_examples/isambard_ai` directory.
+They are:
 - `batch_vllm_run_gh.sh`
 - `batch_vllm_run_gh_1node.sh`
 - `vllm_run_gh.sh`
 
-There are als some scripts for running [Llama-3.3-70B-Instruct-FP8](https://huggingface.co/nvidia/Llama-3.3-70B-Instruct-FP8) in `llama3.3` folder: 
+There are als some scripts for running [Llama-3.3-70B-Instruct-FP8](https://huggingface.co/nvidia/Llama-3.3-70B-Instruct-FP8) in `llama3.3` sub-directory: 
 - `batch_vllm_llama.sh`
 - `vllm_llama.sh`
 
-And, for running vLLM using python (rather than command line) in the `vllm_python` folder:
+And, for running vLLM using python (rather than command line) in the `vllm_python` sub-directory:
 - `batch_vllm_python.sh`
 - `vllm_python.sh`
 - `run_vllm.py`
@@ -162,7 +165,9 @@ On Baskerville, to launch an interactive job run the following command (replace 
 srun --qos turing --account xxxx --time 0:30:0 --nodes 1 --gpus-per-node 4 --cpus-per-gpu 36 --mem 0 --pty /bin/bash
 ```
 
-Once your job is allocated resources, you can either run the `run_local.sh` script to run `qwen.py` or the `run_chat_local.py` script to run `qwen_chat.py` and chat with the model.
+Once your job is allocated resources `cd` to the `transformers_examples/baskerville` directory and run:
+- `./run_local.sh` to run `qwen.py` or
+- `./run_chat_local.py` to run `qwen_chat.py` and chat with the model
 
 #### Batch job (sbatch)
 
@@ -177,7 +182,8 @@ Once the job is running, you can see the outputs in the `one_node.log` file.
 ### Isambard-AI
 
 On Isambard-AI, you will need to use the container defined by the `container/container_vllm.def` file to run the `qwen.py` and `qwen_chat.py` scripts.
-You will need to build the container yourself, to do this:
+You will need to build the container yourself. 
+To do this:
 - Use the following command to launch an interactive job:
 ```bash 
 srun --time=0:30:0 --nodes=1 --gpus-per-node 1 --cpus-per-node 72 --mem=0 --pty /bin/bash
@@ -198,7 +204,7 @@ Once the container is built, you can run the `run_apptainer.sh` script to start 
 srun --time=0:30:0 --nodes=1 --gpus-per-node 1 --cpus-per-node 72 --mem=0 --pty /bin/bash
 ```
 
-Then run the `run_apptainer.sh` script.
+Then run `./run_apptainer.sh`.
 This will drop you into a shell inside the container from which you can run the `qwen.py` or `qwen_chat.py` scripts.
 
 Before running either script, you will need to set the `HF_HOME` environment variable to `/hf_home` and `cd` to the `transformers_examples` directory:
