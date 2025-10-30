@@ -4,8 +4,8 @@
 #SBATCH --time 0:30:0
 #SBATCH --nodes 2
 #SBATCH --gpus-per-node 4
-#SBATCH --job-name test_python
-#SBATCH --output test_python.log
+#SBATCH --job-name llama
+#SBATCH --output llama.log
 
 module purge
 module load brics/default
@@ -20,7 +20,7 @@ echo "--------------------------------------"
 export APPTAINERENV_SLURM_NNODES=$SLURM_NNODES
 
 # for vllm run
-export PRIMARY_PORT=$((30000 + $SLURM_JOB_ID % 16384))
+export PRIMARY_PORT=$((16384 + $SLURM_JOB_ID % 16384))
 export PRIMARY_HOST=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
 export PRIMARY_IP=$(srun --nodes=1 --ntasks=1 -w $PRIMARY_HOST hostname -i | tr -d ' ')
 echo "Primary IP: $PRIMARY_IP"
@@ -28,6 +28,6 @@ echo "Primary IP: $PRIMARY_IP"
 export APPTAINERENV_PRIMARY_PORT=$PRIMARY_PORT
 export APPTAINERENV_PRIMARY_IP=$PRIMARY_IP
 
-srun -N${SLURM_NNODES} -n${SLURM_NNODES} -l apptainer exec --nv --bind ${PWD}:/isambard_ai,${SCRATCH}:/scratch,${HF_HOME}:/hf_home container/e4s-cuda90-aarch64-25.06.4.sif /isambard_ai/vllm_python.sh
+srun -N${SLURM_NNODES} -n${SLURM_NNODES} -l apptainer exec --nv --bind $PWD:/llama3.3,$HF_HOME:/hf_home container/e4s-cuda90-aarch64-25.06.4.sif /llama3.3/vllm_llama.sh
 wait
 

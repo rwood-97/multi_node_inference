@@ -4,6 +4,7 @@
 # slurm logs
 *.log
 *.log.stats
+carbon_usage*
 
 # cache
 *cache*

@@ -7,6 +7,7 @@ from ray.util import placement_group
 # Connect to the running cluster
 ray.init(address="auto")  # auto connects to the Ray cluster from CLI
 
+# test using 1 GPU per task
 @ray.remote(num_gpus=1)
 def get_node_ip():
     return socket.gethostbyname(socket.gethostname())
@@ -26,6 +27,7 @@ while int(ray.available_resources()["GPU"]) < int(ray.cluster_resources()["GPU"]
     print("Waiting for all resources to become available")
     time.sleep(5)
 
+# test using 4 GPUs per task
 @ray.remote(num_gpus=4)
 def ping(node_name):
     import socket
@@ -52,10 +54,6 @@ for node_ip, count in node_counts.items():
 print("\nRay cluster nodes:")
 for node in ray.nodes():
     print(node)
-
-pg = placement_group([{"GPU": 1}] * 8, strategy="PACK")
-ray.get(pg.ready())
-print("Placement group created!")
 
 ray.shutdown()
 
