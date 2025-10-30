@@ -19,5 +19,5 @@ module purge
 module load brics/default
 module load brics/apptainer-multi-node
 
-apptainer exec --nv --bind ${PWD}/../:/transformers_examples,$HF_HOME:/hf_home container/e4s-cuda90-aarch64-25.06.4.sif /transformers_examples/isambard_ai/transformers_run_gh.sh
+apptainer exec --nv --bind ${PWD}/../:/transformers_examples,$HF_HOME:/hf_home container/container.sif /transformers_examples/isambard_ai/transformers_run_gh.sh
 wait

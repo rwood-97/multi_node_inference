@@ -1,13 +1,12 @@
-# Example scripts for running multi-node inference with vLLM on HPCs (Baskerville A100 GPUs and H100 GPUs and Isambard-AI GH200 GPUs)
+# Multi-node inference on HPC
 
-This repository contains example scripts for running multi-node inference with vLLM on HPCs (Baskerville A100 GPUs and H100 GPUs and Isambard-AI GH200 chips with H100 GPUs).
+This repository contains example scripts for running multi-node inference with [vLLM](https://github.com/vllm-project/vllm) on Baskerville and Isambard-AI HPCs.
+It also contains some simple example scripts for running single-node inference on these HPCs with the [transformers](https://github.com/huggingface/transformers) library.
 
 The models used are:
 - [Qwen/Qwen3-235B-A22B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507) 
 - [Qwen/Qwen3-30B-A3B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-30B-A3B-Instruct-2507)
 - [nvidia/Llama-3.3-70B-Instruct-FP8](https://huggingface.co/nvidia/Llama-3.3-70B-Instruct-FP8)
-
-It also contains instructions and a small script for running a frontend using Open WebUI to interact with your model.
 
 ## Baskerville
 
@@ -19,9 +18,19 @@ More information can be found [here](https://docs.baskerville.ac.uk/system/).
 Baskerville's A100 nodes primarily use modules to manage software environments, loaded via `module load <module_name>`. This includes thing like Python, CUDA, NCCL, etc.
 In contrast, the H100 nodes require users to install their own software and so are more suited to containerised workflows.
 
-Baskerville scripts are in the `baskerville` directory.
+## Isambard-AI
 
-### A100 nodes
+The Isambard-AI (Phase 2) system is made up of 1320 nodes with GH200 chips. Each GH200 chip has 1 Grace CPU and 1 H100 GPU. There are 4 GH200 chips per node and 72 cores per GPU. 
+Each H100 GPU has 80GB vRAM. 
+More information can be found [here](https://docs.isambard.ac.uk/system/).
+
+## vLLM scripts
+
+Scripts for running multi-node inference with vLLM are in the `vllm_examples` directory.
+
+### Baskerville
+
+#### A100 nodes
 
 The scripts for the A100 nodes are:
 - `batch_vllm_run.sh`
@@ -29,15 +38,21 @@ The scripts for the A100 nodes are:
 - `vllm_run.sh`
 
 These scripts use the Python (3.11.3) and NCCL (2.20.5 + CUDA 12.3) modules.
-They also use a venv located at `../../venv_a100/`.
+They also use a venv located at `venv_a100`.
 
-For the venv, you will need to:
-- Use `srun` to get onto an A100 node
-- Load the `Python` and `NCCL` modules 
-- Create the venv (`python -m venv venv_a100`) 
-- Install `vllm==0.8.5`
+To run the scripts, use:
 
-### H100 nodes
+``` bash
+sbatch batch_vllm_run.sh
+```
+
+or, for a single node:
+
+``` bash
+sbatch batch_vllm_run_1node.sh
+```
+
+#### H100 nodes
 
 The scripts for the H100 nodes are:
 - `batch_vllm_run_h100.sh`
@@ -45,44 +60,132 @@ The scripts for the H100 nodes are:
 
 These scripts use a container defined by the `container/container_vllm.def` file.
 You will need to build the container yourself, to do this:
-- Use `srun` to get onto an H100 node
-- Build the container with `apptainer build container_vllm.sif container/container_vllm.def` (note: It might take a while to build!)
+- Use the following command to launch an interactive job on an H100 node (replace `xxxx` with your project code): 
+```bash 
+srun --constraint h100_80 --qos turing --account xxxx --time 2:00:0 --nodes 1 --gpus-per-node 1 --cpus-per-gpu 36 --mem 0 --pty /bin/bash
+```
+- Build the container with the following command:
+``` bash
+apptainer build container_vllm.sif container/container_vllm.def
+``` 
 
-## Isambard-AI
+Then, to run the script, use:
 
-The Isambard-AI (Phase 2) system is made up of 1320 nodes with GH200 chips. Each GH200 chip has 1 Grace CPU and 1 H100 GPU. There are 4 GH200 chips per node and 72 cores per GPU. 
-Each H100 GPU has 80GB vRAM. 
-More information can be found [here](https://docs.isambard.ac.uk/system/).
+``` bash
+sbatch batch_vllm_run_h100.sh
+```
 
-The Isambard-AI scripts are in the `isambard-ai` directory.
+### Isambard-AI
 
 The scripts for Isambard-AI are:
 - `batch_vllm_run_gh.sh`
 - `batch_vllm_run_gh_1node.sh`
 - `vllm_run_gh.sh`
 
-Additionally, there are some scripts for running [Llama-3.3-70B-Instruct-FP8](https://huggingface.co/nvidia/Llama-3.3-70B-Instruct-FP8) in `llama3.3` folder: 
+There are als some scripts for running [Llama-3.3-70B-Instruct-FP8](https://huggingface.co/nvidia/Llama-3.3-70B-Instruct-FP8) in `llama3.3` folder: 
 - `batch_vllm_llama.sh`
 - `vllm_llama.sh`
 
-And for running vLLM using python (rather than command line) in the `vllm_python` folder:
+And, for running vLLM using python (rather than command line) in the `vllm_python` folder:
 - `batch_vllm_python.sh`
 - `vllm_python.sh`
 - `run_vllm.py`
 
 All the above scripts use the `e4s-cuda90-aarch64-25.06.4.sif` container.
 This is a pre-built container image which is accessible on the Isambard-AI filesystem at `/projects/public/brics/containers/e4s/cuda90-aarch64-25.06.4.sif`.
-You will need to copy or symlink this image into to the `container` directory before running the scripts.
 
-## Hosting a frontend
+You will need to copy or symlink this image into to a `container` directory before running the scripts. 
 
-The `frontend` directory contains instructions and a script for hosting a frontend using Open WebUI to interact with your model.
+To do this, create the `container` directory if it does not already exist using `mkdir container`, then run the following command:
 
-Go to the `frontend/README.md` for more information.
+``` bash
+ln -s /projects/public/brics/containers/e4s/cuda90-aarch64-25.06.4.sif container/e4s-cuda90-aarch64-25.06.4.sif
+```
 
-## `qwen.py` and `qwen_chat.py`
+Then, to run the scripts, use:
 
-The `qwen.py` and `qwen_chat.py` scripts are simple examples of how to use transformers to load and run the Qwen3-225B model.
+``` bash
+sbatch batch_vllm_run_gh.sh
+```
+or, for a single node:
+
+``` bash
+sbatch batch_vllm_run_gh_1node.sh
+```
+
+Likewise, for the `llama3.3` and `vllm_python` examples.
+
+### Hosting a frontend
+
+The repository also contains instructions and a small script for running a frontend using Open WebUI to interact with your model after serving with vLLM.
+The are in the `frontend` directory.
+
+Go to the `vllm_examples/frontend/README.md` for more information.
+
+## transformers scripts
+
+Scripts for running single-node inference with the transformers library are in the `transformers_examples` directory.
+
+The python scripts are:
+1. `qwen.py` - This script defines a prompt, asks the model to generate a response and then prints the output.
+2. `qwen_chat.py` - This script defines a simple chat interface where the user can input prompts and receive responses from the model in a loop.
+
+The two options for running these scripts are via an interactive job (both for `qwen_chat.py` and `qwen.py`) or a batch job (only for `qwen.py`).
+
+### Baskerville
+
+To launch an interactive job, run the following command (replace `xxxx` with your project code):
+
+```bash
+srun --qos turing --account xxxx --time 0:30:0 --nodes 1 --gpus-per-node 4 --cpus-per-gpu 36 --mem 0 --pty /bin/bash
+```
+
+Once your job is allocated resources, you can run the `run_local.sh` script to run `qwen.py` or the `run_chat_local.py` script to run `qwen_chat.py` and chat with the model.
+
+Alternatively, to run the `qwen.py` script as a batch job, you can use the `batch_run_local.sh` script:
+
+```bash
+sbatch batch_run_local.sh
+```
+
+Once the job is running, you can see the outputs in the `one_node.log` file.
+
+### Isambard-AI
+
+On Isambard-AI, you will need to use the container defined by the `container/container_vllm.def` file to run the `qwen.py` and `qwen_chat.py` scripts.
+You will need to build the container yourself, to do this:
+- Use the following command to launch an interactive job:
+```bash 
+srun --time=0:30:0 --nodes=1 --gpus-per-node 1 --cpus-per-node 72 --mem=0 --pty /bin/bash
+```
+- Build the container with the following command:
+``` bash
+apptainer build container.sif container/container.def
+``` 
+
+Once the container is built, you can run the `run_apptainer.sh` script to start the it.
+This will drop you into a shell inside the container from which you can run the `qwen.py` or `qwen_chat.py` scripts.
+
+Before running either script, you will need to set the `HF_HOME` environment variable to `/hf_home` and `cd` to the `transformers_examples` directory:
+```bash
+export $HF_HOME=/hf_home
+cd /transformers_examples
+```
+
+From there, you can run the chat script with:
+```bash
+python qwen_chat.py
+```
+
+(or `python qwen.py` to run the other script).
+
+Alternatively, to use a batch job you can run the `batch_run_apptainer.sh` script:
+
+```bash
+sbatch batch_run_apptainer.sh
+```
+
+Once the job is running, you can see the outputs in the `one_node_gh.log` file.
 
 ## Refs
 
