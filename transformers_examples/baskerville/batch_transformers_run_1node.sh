@@ -7,8 +7,8 @@
 #SBATCH --nodes 1 
 #SBATCH --gpus-per-node 4
 #SBATCH --cpus-per-gpu 36
-#SBATCh --mem 0
-#SBATCH --ntasks-per-node 4
+#SBATCH --mem 0
+#SBATCH --ntasks-per-node 1
 #SBATCH --job-name one_node
 #SBATCH --output one_node.log
 
@@ -20,7 +20,7 @@ echo "--------------------------------------"
 
 module purge
 module load baskerville
-module load Python
+module load Python CUDA
 
 export PIP_CACHE_DIR=$(PWD -P)/.cache/pip
 export HF_HOME=$(PWD -P)/.cache/huggingface
@@ -31,5 +31,5 @@ echo $(which python)
 
 python -m pip install -r requirements.txt
 
-# test nccl works
+# run qwen.py
 python ../qwen.py
