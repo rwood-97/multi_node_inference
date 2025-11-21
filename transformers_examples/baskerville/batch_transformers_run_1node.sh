@@ -2,7 +2,7 @@
 # vim: et:ts=4:sts=4:sw=4
 
 #SBATCH --qos turing
-#SBATCH --account usjs9456-ati-test
+#SBATCH --account vjgo8416-hpc2511
 #SBATCH --time 0:30:0
 #SBATCH --nodes 1 
 #SBATCH --gpus-per-node 4
