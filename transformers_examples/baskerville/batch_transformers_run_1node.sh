@@ -11,7 +11,6 @@
 #SBATCH --ntasks-per-node 1
 #SBATCH --job-name one_node
 #SBATCH --output one_node.log
-#SBATCH --reservation vjgo8416-hpc2511
 
 echo "--------------------------------------"
 echo 
