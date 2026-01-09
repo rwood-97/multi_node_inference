@@ -17,17 +17,22 @@ echo
 echo "New job: ${SLURM_JOB_ID}"
 echo "--------------------------------------"
 
-export APPTAINERENV_SLURM_NNODES=$SLURM_NNODES
-
 # for vllm run
 export PRIMARY_PORT=$((30000 + $SLURM_JOB_ID % 16384))
 export PRIMARY_HOST=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
 export PRIMARY_IP=$(srun --nodes=1 --ntasks=1 -w $PRIMARY_HOST hostname -i | tr -d ' ')
 echo "Primary IP: $PRIMARY_IP"
 
-export APPTAINERENV_PRIMARY_PORT=$PRIMARY_PORT
-export APPTAINERENV_PRIMARY_IP=$PRIMARY_IP
+# create venv
+uv venv --allow-existing --seed --python=3.12
+source .venv/bin/activate
+echo $(which python)
 
-srun -N${SLURM_NNODES} -n${SLURM_NNODES} -l apptainer exec --nv --bind $PWD:/vllm_python,$HF_HOME:/hf_home container/e4s-cuda90-aarch64-25.06.4.sif /vllm_python/vllm_python.sh
+# install vllm 0.13.0 and zeus
+uv pip install -U vllm --torch-backend=auto --extra-index-url https://wheels.vllm.ai/0.13.0/vllm
+uv pip install ray[client] zeus
+
+srun -N${SLURM_NNODES} -n${SLURM_NNODES} -l ./run_vllm_python.sh
 wait
 
+python gather_energy.py

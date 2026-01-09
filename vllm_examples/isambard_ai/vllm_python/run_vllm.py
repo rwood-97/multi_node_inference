@@ -1,43 +1,45 @@
 import os
+import json
+import subprocess
 import time
 import ray
 
 from vllm import LLM
+from zeus.monitor import ZeusMonitor
+
+# Get Slurm job information from environment variables
+RANK = int(os.environ["SLURM_PROCID"])
+NNODES = int(os.environ["SLURM_NNODES"])    
 
 def main():
     """
     Initializes a Ray cluster and runs the vLLM engine on the head node.
     """
-    # Get Slurm job information from environment variables
-    rank = int(os.environ["SLURM_PROCID"])
-    nnodes = int(os.environ["SLURM_NNODES"])
-    
     ray.init(address="auto")
 
     # --- Synchronization Point ---
     # Wait until all expected nodes have joined the Ray cluster.
-    print(f"Rank {rank}: Waiting for all {nnodes} nodes to join the cluster...")
-    while len(ray.nodes()) < nnodes:
-        print(f"Current cluster size: {len(ray.nodes())}/{nnodes}. Waiting...")
+    print(f"Rank {RANK}: Waiting for all {NNODES} nodes to join the cluster...")
+    while len(ray.nodes()) < NNODES:
+        print(f"Current cluster size: {len(ray.nodes())}/{NNODES}. Waiting...")
         time.sleep(5)
 
     # Only the head node (rank 0) will initialize and run the vLLM engine.
-    if rank == 0:
+    if RANK == 0:
         print("\n" + "="*40)
         print("Head node is initializing the vLLM Engine.")
         print("="*40 + "\n")
 
         # tensor and pipeline parallelism
         tp=4
-        pp=nnodes
+        pp=NNODES
 
         # Initialize the LLM engine
-        # This will now correctly create the placement group across the full Ray cluster
         llm = LLM(
             model="Qwen/Qwen3-30B-A3B-Instruct-2507",
-            # Your distributed configuration
             tensor_parallel_size=tp,
             pipeline_parallel_size=pp,
+            distributed_executor_backend="ray",
         )
 
         prompts = [
@@ -60,12 +62,25 @@ def main():
         print("Shutting down in 30 seconds.")
         time.sleep(30)
 
+        # create empty file as shutdown signal
+        open(".shutdown_signal", "w").close()
+        
     else:
-        # Worker nodes just keep their Ray process alive until the job ends.
-        print("Worker node is idle, waiting for work from the head node.")
-        # We need to keep the script running for the Ray worker to stay alive
-        while True:
-            time.sleep(60)
+        # loop until shutdown file is created
+        while not os.path.exists(".shutdown_signal"):
+            time.sleep(5)
+
+        os.remove(".shutdown_signal")
+        
 
 if __name__ == "__main__":
+    monitor =  ZeusMonitor()
+    monitor.begin_window("main")
     main()
+    energy_usage = monitor.end_window("main")
+    
+    with open(f"log-energy-usage-{RANK}.json", "w") as f:
+        json.dump(energy_usage.__dict__, f)
+
+    print(f"Energy used: {energy_usage.total_energy} in {energy_usage.time}s")
+    print("Done!")
