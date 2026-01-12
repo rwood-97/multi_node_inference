@@ -29,9 +29,9 @@ uv venv --allow-existing --seed --python=3.12
 source .venv/bin/activate
 echo $(which python)
 
-# install vllm 0.13.0 and zeus
+# install vllm 0.13.0 and ray
 uv pip install -U vllm --torch-backend=auto --extra-index-url https://wheels.vllm.ai/0.13.0/vllm
-uv pip install ray[client] zeus
+uv pip install ray[client]
 
 srun -N${SLURM_NNODES} -n${SLURM_NNODES} -l vllm_run.sh
 wait
