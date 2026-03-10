@@ -4,7 +4,9 @@ This repository contains example scripts for running multi-node inference with [
 It also contains some simple example scripts for running single-node inference on these HPCs with the [transformers](https://github.com/huggingface/transformers) library.
 
 The models used are:
-- [Qwen/Qwen3-235B-A22B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507) 
+- [Qwen/Qwen3-235B-A22B-Thinking-2507](https://huggingface.co/Qwen/Qwen3-235B-A22B-Thinking-2507)
+- [Qwen/Qwen3-235B-A22B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507)
+- [Qwen/Qwen3-30B-A3B-Thinking-2507](https://huggingface.co/Qwen/Qwen3-30B-A3B-Thinking-2507)
 - [Qwen/Qwen3-30B-A3B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-30B-A3B-Instruct-2507)
 - [nvidia/Llama-3.3-70B-Instruct-FP8](https://huggingface.co/nvidia/Llama-3.3-70B-Instruct-FP8)
 
@@ -15,6 +17,10 @@ The models used are:
 - [vLLM scripts](#vllm-scripts)
     - [Baskerville](#baskerville)
     - [Isambard-AI](#isambard-ai)
+        - [Non-containerised (uv)](#non-containerised-uv)
+        - [Containerised](#containerised)
+        - [vLLM Python (Python API with energy tracking)](#vllm-python-python-api-with-energy-tracking)
+        - [Llama 3.3](#llama-33)
     - [Hosting a frontend](#hosting-a-frontend)
 - [transformers scripts](#transformers-scripts)
     - [Baskerville](#baskerville-1)
@@ -97,46 +103,76 @@ sbatch batch_vllm_run_h100.sh
 ### Isambard-AI
 
 The scripts for Isambard-AI are found in the `vllm_examples/isambard_ai` directory.
-They are:
-- `batch_vllm_run_gh.sh`
-- `batch_vllm_run_gh_1node.sh`
-- `vllm_run_gh.sh`
+There are two approaches: **containerised** (using a pre-built Apptainer image) and **non-containerised** (using [uv](https://github.com/astral-sh/uv) to manage a local venv).
 
-There are als some scripts for running [Llama-3.3-70B-Instruct-FP8](https://huggingface.co/nvidia/Llama-3.3-70B-Instruct-FP8) in `llama3.3` sub-directory: 
-- `batch_vllm_llama.sh`
-- `vllm_llama.sh`
+#### Non-containerised (uv)
 
-And, for running vLLM using python (rather than command line) in the `vllm_python` sub-directory:
-- `batch_vllm_python.sh`
-- `vllm_python.sh`
-- `run_vllm.py`
+These scripts install vLLM and Ray into a local venv using `uv` and are the recommended approach:
+- `batch_vllm_run_1node.sh` — single-node batch job
+- `vllm_run.sh` — per-node run script (started by `srun`)
 
-All the above scripts use the `e4s-cuda90-aarch64-25.06.4.sif` container.
-This is a pre-built container image which is accessible on the Isambard-AI filesystem at `/projects/public/brics/containers/e4s/cuda90-aarch64-25.06.4.sif`.
+The model served depends on the number of nodes:
+- 1 node → `Qwen/Qwen3-30B-A3B-Thinking-2507`
+- multi-node → `Qwen/Qwen3-235B-A22B-Thinking-2507`
 
-You will need to copy or symlink this image into to a `container` directory before running the scripts. 
+To run:
 
-To do this:
-- `cd` to the `vllm_examples/isambard_ai` directory (or the relevant sub-directory for the other examples)
-- Create the `container` directory if it does not already exist (using `mkdir container`)
-- Run the following command to create a symlink to the container image:
+```bash
+cd vllm_examples/isambard_ai
+sbatch batch_vllm_run_1node.sh
+```
 
-``` bash
+#### Containerised
+
+These scripts use the `e4s-cuda90-aarch64-25.06.4.sif` container image:
+- `batch_vllm_run_containerised.sh`
+- `batch_vllm_run_containerised_1node.sh`
+- `vllm_run_containerised.sh`
+
+The container image is accessible on the Isambard-AI filesystem at `/projects/public/brics/containers/e4s/cuda90-aarch64-25.06.4.sif`.
+
+You will need to copy or symlink this image into a `container` directory before running the scripts:
+
+```bash
+cd vllm_examples/isambard_ai
+mkdir -p container
 ln -s /projects/public/brics/containers/e4s/cuda90-aarch64-25.06.4.sif container/e4s-cuda90-aarch64-25.06.4.sif
 ```
 
-Once this is done, you can run the scripts using:
+Then run:
 
-``` bash
-sbatch batch_vllm_run_gh.sh
+```bash
+sbatch batch_vllm_run_containerised.sh
 ```
+
 or, for a single node:
 
-``` bash
-sbatch batch_vllm_run_gh_1node.sh
+```bash
+sbatch batch_vllm_run_containerised_1node.sh
 ```
 
-Likewise, for the `llama3.3` and `vllm_python` examples.
+#### vLLM Python (Python API with energy tracking)
+
+The `vllm_python` sub-directory contains scripts for running vLLM via the Python API (rather than the CLI), with GPU energy tracking via [Zeus](https://ml.energy/zeus):
+- `batch_vllm_python.sh`
+- `run_vllm_python.sh`
+- `run_vllm.py`
+- `gather_energy.py`
+
+Energy usage is written to `log-energy-usage-{rank}.json` per node and summed by `gather_energy.py`.
+
+To run:
+
+```bash
+cd vllm_examples/isambard_ai/vllm_python
+sbatch batch_vllm_python.sh
+```
+
+#### Llama 3.3
+
+Scripts for running [Llama-3.3-70B-Instruct-FP8](https://huggingface.co/nvidia/Llama-3.3-70B-Instruct-FP8) are in the `llama3.3` sub-directory:
+- `batch_vllm_llama.sh`
+- `vllm_llama.sh`
 
 ### Hosting a frontend
 
