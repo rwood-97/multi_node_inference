@@ -1,9 +1,10 @@
 #!/bin/bash
+set -e
 
 #/.singularity.d/runscript
 
 # adapt container for multi-node
-if [[ "$SLRUM_NNODES" -gt 1 ]]; then
+if [[ "$SLURM_NNODES" -gt 1 ]]; then
     source /host/adapt.sh
 fi
 

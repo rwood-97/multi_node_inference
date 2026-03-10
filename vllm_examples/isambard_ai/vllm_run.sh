@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 source .venv/bin/activate
 echo $(which python)
@@ -38,6 +39,8 @@ if [[ "$SLURM_PROCID" -eq 0 ]]; then
     
     # Track GPU metrics
     nvidia-smi dmon -o TD -s puct -d 1 > log-train-gpu.txt &
+    NVIDIA_SMI_PID=$!
+    trap 'kill $NVIDIA_SMI_PID 2>/dev/null' EXIT
 
     if [[ "$SLURM_NNODES" -eq 1 ]]; then
         MODEL="Qwen/Qwen3-30B-A3B-Thinking-2507"

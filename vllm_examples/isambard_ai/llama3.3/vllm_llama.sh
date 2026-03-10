@@ -1,9 +1,10 @@
 #!/bin/bash
+set -e
 
 /.singularity.d/runscript
 
 # adapt container for multi-node
-if [[ "$SLRUM_NNODES" -gt 1 ]]; then
+if [[ "$SLURM_NNODES" -gt 1 ]]; then
     source /host/adapt.sh
 fi
 
@@ -40,7 +41,7 @@ if [[ "$SLURM_NODEID" -eq 0 && "$SLURM_LOCALID" -eq 0 ]]; then
 elif [[ "$SLURM_LOCALID" -eq 0 ]]; then
     echo "Starting Ray worker (proc $PROC_ID) connecting to $PRIMARY_IP:$PRIMARY_PORT"
     ray start --block --address $PRIMARY_IP:$PRIMARY_PORT --node-ip-address $VLLM_HOST_IP
-    echo "Woker (proc $PROC_ID) stopped"
+    echo "Worker (proc $PROC_ID) stopped"
 fi
 
 # sleep to ensure ray is set up
@@ -55,6 +56,8 @@ if [[ "$SLURM_PROCID" -eq 0 ]]; then
 
     echo "Running nvidia/Llama-3.3-70B-Instruct-FP8 with vLLM..."
     vllm serve nvidia/Llama-3.3-70B-Instruct-FP8 --tokenizer-mode auto --tensor-parallel-size 4 --pipeline-parallel-size ${SLURM_NNODES} --config /isambard_ai/llama_config.yaml &
+    VLLM_PID=$!
+    trap 'kill $VLLM_PID 2>/dev/null' EXIT
 
     # Wait for the REST API to be available
     until curl -s http://localhost:8000/v1/models >/dev/null 2>&1; do

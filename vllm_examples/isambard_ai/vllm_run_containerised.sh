@@ -1,9 +1,10 @@
 #!/bin/bash
+set -e
 
 #/.singularity.d/runscript
 
 # adapt container for multi-node
-if [[ "$SLRUM_NNODES" -gt 1 ]]; then
+if [[ "$SLURM_NNODES" -gt 1 ]]; then
     source /host/adapt.sh
 fi
 
@@ -47,6 +48,8 @@ if [[ "$SLURM_PROCID" -eq 0 ]]; then
     
     # Track GPU metrics
     nvidia-smi dmon -o TD -s puct -d 1 > /isambard_ai/log-train-gpu.txt &
+    NVIDIA_SMI_PID=$!
+    trap 'kill $NVIDIA_SMI_PID 2>/dev/null' EXIT
 
     if [[ "$SLURM_NNODES" -eq 1 ]]; then
         MODEL="Qwen/Qwen3-30B-A3B-Thinking-2507"
