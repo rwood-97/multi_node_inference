@@ -11,10 +11,16 @@ from zeus.monitor import ZeusMonitor
 RANK = int(os.environ["SLURM_PROCID"])
 NNODES = int(os.environ["SLURM_NNODES"])    
 
+SHUTDOWN_SIGNAL = ".shutdown_signal"
+
 def main():
     """
     Initializes a Ray cluster and runs the vLLM engine on the head node.
     """
+    # Clean up any stale signal from a previous run before starting
+    if RANK == 0 and os.path.exists(SHUTDOWN_SIGNAL):
+        os.remove(SHUTDOWN_SIGNAL)
+
     ray.init(address="auto")
 
     # --- Synchronization Point ---
@@ -63,14 +69,13 @@ def main():
         time.sleep(30)
 
         # create empty file as shutdown signal
-        open(".shutdown_signal", "w").close()
-        
-    else:
-        # loop until shutdown file is created
-        while not os.path.exists(".shutdown_signal"):
-            time.sleep(5)
+        open(SHUTDOWN_SIGNAL, "w").close()
 
-        os.remove(".shutdown_signal")
+    else:
+        # Wait for head node to signal shutdown; don't remove the file so
+        # all worker ranks see it regardless of order.
+        while not os.path.exists(SHUTDOWN_SIGNAL):
+            time.sleep(5)
         
 
 if __name__ == "__main__":
