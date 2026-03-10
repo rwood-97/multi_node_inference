@@ -49,7 +49,6 @@ if [[ "$SLURM_PROCID" -eq 0 ]]; then
     # Track GPU metrics
     nvidia-smi dmon -o TD -s puct -d 1 > /isambard_ai/log-train-gpu.txt &
     NVIDIA_SMI_PID=$!
-    trap 'kill $NVIDIA_SMI_PID 2>/dev/null' EXIT
 
     if [[ "$SLURM_NNODES" -eq 1 ]]; then
         MODEL="Qwen/Qwen3-30B-A3B-Thinking-2507"
@@ -63,7 +62,9 @@ if [[ "$SLURM_PROCID" -eq 0 ]]; then
     	--tensor-parallel-size 4 \
 	--pipeline-parallel-size ${SLURM_NNODES} \
 	--enable-auto-tool-choice \
-	--tool-call-parser hermes
+	--tool-call-parser hermes &
+    VLLM_PID=$!
+    trap 'kill $NVIDIA_SMI_PID $VLLM_PID 2>/dev/null' EXIT
 
     # Wait for the REST API to be available
     until curl -s http://localhost:8000/v1/models >/dev/null 2>&1; do

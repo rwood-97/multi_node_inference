@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-/.singularity.d/runscript
+#/.singularity.d/runscript
 
 # adapt container for multi-node
 if [[ "$SLURM_NNODES" -gt 1 ]]; then

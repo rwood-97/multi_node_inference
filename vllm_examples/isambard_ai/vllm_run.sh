@@ -54,7 +54,9 @@ if [[ "$SLURM_PROCID" -eq 0 ]]; then
     	--tensor-parallel-size 4 \
 	--pipeline-parallel-size ${SLURM_NNODES} \
 	--enable-auto-tool-choice \
-	--tool-call-parser hermes
+	--tool-call-parser hermes &
+    VLLM_PID=$!
+    trap 'kill $VLLM_PID 2>/dev/null' EXIT
 
     # Wait for the REST API to be available
     until curl -s http://localhost:8000/v1/models >/dev/null 2>&1; do
