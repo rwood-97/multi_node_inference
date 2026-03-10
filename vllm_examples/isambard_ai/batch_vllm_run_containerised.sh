@@ -4,8 +4,8 @@
 #SBATCH --time 0:30:0
 #SBATCH --nodes 2
 #SBATCH --gpus-per-node 4
-#SBATCH --job-name test_python
-#SBATCH --output test_python.log
+#SBATCH --job-name test_multi_node_gh
+#SBATCH --output test_multi_node_gh.log
 
 module purge
 module load brics/default
@@ -23,16 +23,10 @@ export PRIMARY_HOST=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
 export PRIMARY_IP=$(srun --nodes=1 --ntasks=1 -w $PRIMARY_HOST hostname -i | tr -d ' ')
 echo "Primary IP: $PRIMARY_IP"
 
-# create venv
-uv venv --allow-existing --seed --python=3.12
-source .venv/bin/activate
-echo $(which python)
+# export apptainer env variables
+export APPTAINERENV_PRIMARY_PORT=$PRIMARY_PORT
+export APPTAINERENV_PRIMARY_IP=$PRIMARY_IP
 
-# install vllm 0.13.0 and zeus
-uv pip install -U vllm --torch-backend=auto --extra-index-url https://wheels.vllm.ai/0.13.0/vllm
-uv pip install ray[client] zeus
-
-srun -N${SLURM_NNODES} -n${SLURM_NNODES} -l ./run_vllm_python.sh
+srun -N${SLURM_NNODES} -n${SLURM_NNODES} -l apptainer exec --nv --bind $PWD:/isambard_ai,$HF_HOME:/hf_home container/e4s-cuda90-aarch64-25.06.4.sif /isambard_ai/vllm_run_containerised.sh
 wait
 
-python gather_energy.py
