@@ -26,8 +26,11 @@ elif [[ "$SLURM_LOCALID" -eq 0 ]]; then
     ray start --address $PRIMARY_IP:$PRIMARY_PORT --node-ip-address $VLLM_HOST_IP
 fi
 
-# sleep to ensure ray is set up
-sleep 20
+# Wait for Ray to be ready before running Python
+echo "Waiting for Ray cluster to be ready..."
+until ray status >/dev/null 2>&1; do
+    sleep 2
+done
 
 echo "Running vLLM benchmark..."
 python run_vllm.py
