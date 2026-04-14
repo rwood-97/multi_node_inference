@@ -112,8 +112,8 @@ These scripts install vLLM and Ray into a local venv using `uv` and are the reco
 - `vllm_run.sh` — per-node run script (started by `srun`)
 
 The model served depends on the number of nodes:
-- 1 node → `Qwen/Qwen3-30B-A3B-Thinking-2507`
-- multi-node → `Qwen/Qwen3-235B-A22B-Thinking-2507`
+- 1 node = `Qwen/Qwen3-30B-A3B-Thinking-2507`
+- multi-node = `Qwen/Qwen3-235B-A22B-Thinking-2507`
 
 To run:
 
